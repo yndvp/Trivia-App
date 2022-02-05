@@ -20,21 +20,29 @@ public class Repository {
 
     String url = "https://raw.githubusercontent.com/curiousily/simple-quiz/master/script/statements-data.json";
 
-    public List<Question> getQuestions(){
+    public List<Question> getQuestions(final QuestionListAsyncResponse callBack){
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET,
                 url, null, response -> {
             for (int i = 0; i < response.length(); i++) {
+
                 try {
-                    Question question = new Question(response.getJSONArray(i).getString(0).toString(), response.getJSONArray(i).getBoolean(1));
+                    Question question = new Question(response.getJSONArray(i).getString(0).toString(),
+                            response.getJSONArray(i).getBoolean(1));
+
+                    // Add questions to arraylist
+                    questionArrayList.add(question);
 
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
+
+            if(callBack != null) callBack.processFinished(questionArrayList);
+
         }, error -> Log.d("Repo", "Failed!"));
 
         AppController.getInstance().addToRequestQueue(jsonArrayRequest);
 
-        return null;
+        return questionArrayList;
     }
 }
