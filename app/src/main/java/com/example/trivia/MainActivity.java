@@ -34,6 +34,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private int currentQuestionIndex = 0;
+    private int score = 0;
     List<Question> questions;
 
     @Override
@@ -68,12 +69,22 @@ public class MainActivity extends AppCompatActivity {
         if(answer == answerInput) {
             snackMessageId = R.string.correct_answer;
             fadeAnimtation();
+            updateScore(true);
         } else {
             snackMessageId = R.string.inccorect_answer;
             shakeAnimation();
+            updateScore(false);
         }
         Snackbar.make(binding.cardView, snackMessageId, Snackbar.LENGTH_SHORT)
                 .show();
+    }
+
+    private void updateScore(boolean ifWin) {
+        if(ifWin) score += 10;
+        else if(!ifWin && score != 0){
+            score -= 10;
+        }
+        binding.scoreTextView.setText(String.valueOf(score));
     }
 
     private void updateCounter(ArrayList<Question> questions) {

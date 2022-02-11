@@ -9,4 +9,5 @@
     <string name="text_formatted">Question: %d / %d</string>
     <string name="correct_answer">Correct!</string>
     <string name="inccorect_answer">Incorrect!</string>
+    <string name="score_text">Score: </string>
 </resources>
