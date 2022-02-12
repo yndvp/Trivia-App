@@ -15,6 +15,7 @@ import com.example.trivia.data.Repository;
 import com.example.trivia.databinding.ActivityMainBinding;
 import com.example.trivia.model.Question;
 import com.example.trivia.model.Score;
+import com.example.trivia.util.Prefs;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
@@ -26,14 +27,20 @@ public class MainActivity extends AppCompatActivity {
     private int currentQuestionIndex = 0;
     private int scoreCounter = 0;
     private Score score;
+    private Prefs prefs;
     List<Question> questions;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         score = new Score();
+        prefs = new Prefs(MainActivity.this);
+
+        binding.scoreTextView.setText(String.format("Current Score: %d", score.getScore()));
+        binding.highestScoreTextView.setText(String.format("Highest Score: %d", prefs.getHighestScore()));
 
         questions = new Repository().getQuestions(new QuestionListAsyncResponse() {
             @Override
@@ -44,8 +51,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         binding.nextButton.setOnClickListener(view -> {
-            currentQuestionIndex = (currentQuestionIndex + 1) % questions.size();
-            updateQuestion();
+            getNextQuestion();
         });
         binding.trueButton.setOnClickListener(view -> {
             checkCorrect(true);
@@ -53,10 +59,11 @@ public class MainActivity extends AppCompatActivity {
         binding.falseButton.setOnClickListener(view -> {
             checkCorrect(false);
         });
+    }
 
-        SharedPreferences getShareData = getSharedPreferences(MESSAGE_ID,MODE_PRIVATE);
-        int value = getShareData.getInt("score", 0);
-        binding.highestScoreTextView.setText(String.format("Highest Score: %d", value));
+    private void getNextQuestion() {
+        currentQuestionIndex = (currentQuestionIndex + 1) % questions.size();
+        updateQuestion();
     }
 
     private void checkCorrect(boolean answerInput) {
@@ -98,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAnimationEnd(Animation animation) {
                 binding.questionTextview.setTextColor(Color.WHITE);
+                getNextQuestion();
 
             }
 
@@ -125,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAnimationEnd(Animation animation) {
                 binding.questionTextview.setTextColor(Color.WHITE);
+                getNextQuestion();
             }
 
             @Override
@@ -141,8 +150,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void deductPoints(){
-        scoreCounter -= 100;
         if(scoreCounter > 0) {
+            scoreCounter -= 100;
             score.setScore(scoreCounter);
         } else {
             scoreCounter = 0;
@@ -154,10 +163,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-
-        SharedPreferences sharedPreferences = getSharedPreferences(MESSAGE_ID, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt("score", scoreCounter);
-        editor.apply();
+        prefs.saveHighestScore(score.getScore());
     }
 }
