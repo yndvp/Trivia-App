@@ -3,38 +3,29 @@ package com.example.trivia;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.example.trivia.controller.AppController;
 import com.example.trivia.data.QuestionListAsyncResponse;
 import com.example.trivia.data.Repository;
 import com.example.trivia.databinding.ActivityMainBinding;
 import com.example.trivia.model.Question;
+import com.example.trivia.model.Score;
 import com.google.android.material.snackbar.Snackbar;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    private static String MESSAGE_ID = "score";
     private ActivityMainBinding binding;
     private int currentQuestionIndex = 0;
-    private int score = 0;
+    private int scoreCounter = 0;
+    private Score score;
     List<Question> questions;
 
     @Override
@@ -42,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        score = new Score();
 
         questions = new Repository().getQuestions(new QuestionListAsyncResponse() {
             @Override
@@ -61,6 +53,10 @@ public class MainActivity extends AppCompatActivity {
         binding.falseButton.setOnClickListener(view -> {
             checkCorrect(false);
         });
+
+        SharedPreferences getShareData = getSharedPreferences(MESSAGE_ID,MODE_PRIVATE);
+        int value = getShareData.getInt("score", 0);
+        binding.highestScoreTextView.setText(String.format("Highest Score: %d", value));
     }
 
     private void checkCorrect(boolean answerInput) {
@@ -69,22 +65,14 @@ public class MainActivity extends AppCompatActivity {
         if(answer == answerInput) {
             snackMessageId = R.string.correct_answer;
             fadeAnimtation();
-            updateScore(true);
+            addPoints();
         } else {
             snackMessageId = R.string.inccorect_answer;
             shakeAnimation();
-            updateScore(false);
+            deductPoints();
         }
         Snackbar.make(binding.cardView, snackMessageId, Snackbar.LENGTH_SHORT)
                 .show();
-    }
-
-    private void updateScore(boolean ifWin) {
-        if(ifWin) score += 10;
-        else if(!ifWin && score != 0){
-            score -= 10;
-        }
-        binding.scoreTextView.setText(String.valueOf(score));
     }
 
     private void updateCounter(ArrayList<Question> questions) {
@@ -146,4 +134,30 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void addPoints(){
+        scoreCounter += 100;
+        score.setScore(scoreCounter);
+        binding.scoreTextView.setText(String.format("Current Score: %d", score.getScore()));
+    }
+
+    private void deductPoints(){
+        scoreCounter -= 100;
+        if(scoreCounter > 0) {
+            score.setScore(scoreCounter);
+        } else {
+            scoreCounter = 0;
+            score.setScore(scoreCounter);
+        }
+        binding.scoreTextView.setText(String.format("Current Score: %d", score.getScore()));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        SharedPreferences sharedPreferences = getSharedPreferences(MESSAGE_ID, MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt("score", scoreCounter);
+        editor.apply();
+    }
 }

@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Trivia</string>
     <string name="title_text">Trivia</string>
-    <string name="out_of_text">Question: 45/89</string>
+    <string name="out_of_text">Question: 1/89</string>
     <string name="true_button">True</string>
     <string name="false_button">False</string>
     <string name="next_button">Next</string>
@@ -9,5 +9,6 @@
     <string name="text_formatted">Question: %d / %d</string>
     <string name="correct_answer">Correct!</string>
     <string name="inccorect_answer">Incorrect!</string>
-    <string name="score_text">Score: </string>
+    <string name="score_text">Current Score: 0</string>
+    <string name="highest_score_text">Highest Score: 0</string>
 </resources>
